@@ -7,17 +7,29 @@ import (
 	"net"
 	"net/url"
 	"strings"
+	//"bufio"
+	"crypto/tls"
 )
 func main() {
+	cert, err := tls.LoadX509KeyPair("server.pem", "server.key")
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	config := &tls.Config{Certificates: []tls.Certificate{cert}}
+	l, err := tls.Listen("tcp", "127.0.0.1:443", config)
+
 	log.SetFlags(log.LstdFlags|log.Lshortfile)
-	l, err := net.Listen("tcp", ":8081")
+	//l, err := net.Listen("tcp", ":8081")
 	if err != nil {
 		log.Panic(err)
 	}
+	defer l.Close()
 	for {
 		client, err := l.Accept()
 		if err != nil {
 			log.Panic(err)
+			continue
 		}
 		go handleClientRequest(client)
 	}
